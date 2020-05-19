@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
-    "test": "jest",
+    "test": "jest --detectOpenHandles --runInBand --coverage",
     "build": "tsc -p declaration.tsconfig.json",
     "prepublishOnly": "npm test && npm run lint",
     "preversion": "npm run lint",

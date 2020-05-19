@@ -6,7 +6,7 @@
     "compilerOptions": {
       "declaration": true,
       "noEmit": false,
-      "emitDeclarationOnly": true,
+      "emitDeclarationOnly": false,
       "declarationMap": true
     }
   }
