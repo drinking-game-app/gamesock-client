@@ -3,12 +3,29 @@ import ioClient from 'socket.io-client';
 let url = `http://localhost:3000`;
 let clientSocket: SocketIOClient.Socket;
 
+/**
+ * The lobby object
+ */
+export interface Lobby {
+  readonly name: string;
+  // If round is 0 game has not started
+  round: 0;
+  // Host will always be players[0]
+  players: Player[];
+}
+
+export interface Player {
+  // socketIO id
+  readonly id: string;
+  name: string;
+  ready: boolean;
+}
 export interface Message{
     ok:boolean,
     msg:string
 }
 export type MessageFn = (message: Message) =>void;
-export type PlayerReadyFn = (message: Message) =>void;
+export type PlayerReadyFn = (playerNum: number) =>void;
 
 // tslint:disable-next-line: no-empty
 let messageFn = (message:Message)=>{};
@@ -19,7 +36,7 @@ export const onMessage = (messageEventFunction:(message:Message)=>void)=>{
     messageFn=messageEventFunction;
 }
 
-export const onPLayerReady = (playerReadyEventFunction:(playerNum:number)=>void)=>{
+export const onPlayerReady = (playerReadyEventFunction:(playerNum:number)=>void)=>{
   playerReadyFn=playerReadyEventFunction;
 }
 
@@ -38,11 +55,18 @@ const connect = () => {
  *  JoinLobby will join a currently open lobby
  * @param lobbyName The name of the lobby you want to join as a string
  */
-export const joinLobby = (lobbyName: string) => {
+export const joinLobby = async (lobbyName: string) => {
   clientSocket = connect();
   startMessageListener();
   startReadyListener();
-  clientSocket.emit('joinLobby', lobbyName);
+  return new Promise<Player[]>((res,rej)=>{
+    clientSocket.emit('joinLobby', lobbyName, (players:Player[])=>{
+      if(!!!players){
+        rej('Could not join lobby');
+      }
+      res(players)
+    });
+  })
 };
 
 /**
@@ -50,11 +74,18 @@ export const joinLobby = (lobbyName: string) => {
  * @param lobbyName The name of the lobby you want to join as a string
  * @param authToken The auth token to verify the user
  */
-export const createLobby = (lobbyName: string, authToken: string) => {
+export const createLobby = async (lobbyName: string, authToken: string) => {
   clientSocket = connect();
   startMessageListener();
   startReadyListener();
-  clientSocket.emit('createLobby', lobbyName, authToken);
+  return new Promise<Player[]>((res,rej)=>{
+    clientSocket.emit('createLobby', lobbyName, authToken, (players:Player[])=>{
+      if(!!!players){
+        rej('Could not create lobby');
+      }
+      res(players)
+    });
+  })
 };
 
 /**
@@ -75,9 +106,11 @@ const startMessageListener=()=>{
 
 const startReadyListener = () =>{
   clientSocket.on('playerReady', (playerNum:number)=>{
-    playerReadyFn(playerNum)
+    playerReadyFn(playerNum);
   })
 }
+
+
 
 
 export default {
@@ -86,5 +119,5 @@ export default {
   createLobby,
   setReady,
   onMessage,
-  onPLayerReady
+  onPlayerReady
 };
