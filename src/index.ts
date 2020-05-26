@@ -3,8 +3,6 @@ import ioClient from 'socket.io-client';
 let url = `http://localhost:3000`;
 let clientSocket: SocketIOClient.Socket;
 
-//test
-
 /**
  * The lobby object
  */
@@ -20,14 +18,14 @@ export interface Player {
   // socketIO id
   readonly id: string;
   name: string;
-  ready: boolean;
+  score: boolean;
 }
 export interface Message{
     ok:boolean,
     msg:string
 }
 export type MessageFn = (message: Message) =>void;
-export type PlayerReadyFn = (playerNum: number) =>void;
+// export type PlayerReadyFn = (playerNum: number) =>void;
 export type SinglePlayerUpdateFn = (player: Player) =>void;
 export type PlayerListUpdateFn = (player: Player) =>void;
 export type StartGameFn = (gameOptions:any) =>void;
@@ -35,7 +33,7 @@ export type StartGameFn = (gameOptions:any) =>void;
 // tslint:disable-next-line: no-empty
 let messageFn = (message:Message)=>{};
 // tslint:disable-next-line: no-empty
-let playerReadyFn = (playerNum:number)=>{};
+// let playerReadyFn = (playerNum:number)=>{};
 // tslint:disable-next-line: no-empty
 let singlePlayerUpdateFn = (player:Player)=>{};
 // tslint:disable-next-line: no-empty
@@ -47,9 +45,9 @@ export const onMessage = (messageEventFunction:(message:Message)=>void)=>{
     messageFn=messageEventFunction;
 }
 
-export const onPlayerReady = (playerReadyEventFunction:(playerNum:number)=>void)=>{
-  playerReadyFn=playerReadyEventFunction;
-}
+// export const onPlayerReady = (playerReadyEventFunction:(playerNum:number)=>void)=>{
+//   playerReadyFn=playerReadyEventFunction;
+// }
 
 export const onSinglePlayerUpdate = (singlePlayerUpdateEventFunction:(player:Player)=>void)=>{
   singlePlayerUpdateFn=singlePlayerUpdateEventFunction;
@@ -114,9 +112,9 @@ export const createLobby = async (lobbyName: string, authToken: string) => {
  * Let the server know that the player has updated their name
  * Once a game is started this will have no effect
  */
-export const setReady = (lobbyName:string) => {
-  clientSocket.emit('playerReady',lobbyName);
-};
+// export const setReady = (lobbyName:string) => {
+//   clientSocket.emit('playerReady',lobbyName);
+// };
 
 /**
  * Let the server know that the player is ready for the game to start.
@@ -156,11 +154,11 @@ const startErrorListener=()=>{
   });
 }
 
-const startReadyListener = () =>{
-  clientSocket.on('playerReady', (playerNum:number)=>{
-    playerReadyFn(playerNum);
-  })
-}
+// const startReadyListener = () =>{
+//   clientSocket.on('playerReady', (playerNum:number)=>{
+//     playerReadyFn(playerNum);
+//   })
+// }
 
 const startSinglePlayerUpdateListener = () =>{
   clientSocket.on('playerUpdated', (player:Player)=>{
@@ -189,7 +187,7 @@ const startLobbyListeners = ()=>{
   startMessageListener();
   startErrorListener();
   // TODO: Remove
-  startReadyListener();
+  // startReadyListener();
   // Start Syncing listners
   startSinglePlayerUpdateListener();
   startPlayerListUpdateListener();
@@ -209,9 +207,7 @@ export default {
   setup,
   joinLobby,
   createLobby,
-  setReady,
   onMessage,
-  onPlayerReady,
   onSinglePlayerUpdate,
   onPlayerListUpdate,
   onStartGame,
