@@ -3,6 +3,8 @@ import ioClient from 'socket.io-client';
 let url = `http://localhost:3000`;
 let clientSocket: SocketIOClient.Socket;
 
+//test
+
 /**
  * The lobby object
  */
