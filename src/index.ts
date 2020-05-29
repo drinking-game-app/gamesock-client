@@ -30,7 +30,7 @@ export interface Player {
   // socketIO id
   readonly id: string;
   name: string;
-  score: boolean;
+  score: number;
 }
 export interface Message {
   ok: boolean;
@@ -49,39 +49,45 @@ export interface RoundOptions{
   // Time to start first timer: Date.now foramt
   timerStart:number
 }
+export type CallbackFunction = (data: any, error?: string) => void;
 
 export type MessageFn = (message: Message) => void;
 // export type PlayerReadyFn = (playerNum: number) =>void;
 export type SinglePlayerUpdateFn = (player: Player) => void;
-export type PlayerListUpdateFn = (player: Player) => void;
+export type PlayerListUpdateFn = (player: Player[]) => void;
 export type StartGameFn = (gameOptions: any) => void;
+export type SendQuestionsFn = ()=>string[];
+
 
 // tslint:disable-next-line: no-empty
-let messageFn = (message: Message) => {};
+let messageFn:MessageFn = (message: Message) => {};
 // tslint:disable-next-line: no-empty
-let singlePlayerUpdateFn = (player: Player) => {};
+let singlePlayerUpdateFn:SinglePlayerUpdateFn = (player: Player) => {};
 // tslint:disable-next-line: no-empty
-let playerListUpdateFn = (playerList: Player[]) => {};
+let playerListUpdateFn:PlayerListUpdateFn = (playerList: Player[]) => {};
 // tslint:disable-next-line: no-empty
-let startGameFn = (gameOptions: any) => {};
+let startGameFn:StartGameFn = (gameOptions: any) => {};
 // tslint:disable-next-line: no-empty
 let startRoundFn = (roundOptions:RoundOptions) => {};
 // tslint:disable-next-line: no-empty
 let timerUpdateFn = (secondsLeftInTimer:number) => {};
+// tslint:disable-next-line: no-empty
+let sendQuestionsFn:SendQuestionsFn=()=>['Questions were not answered']
 
-export const onMessage = (messageEventFunction: (message: Message) => void) => {
+
+export const onMessage = (messageEventFunction: MessageFn) => {
   messageFn = messageEventFunction;
 };
 
-export const onSinglePlayerUpdate = (singlePlayerUpdateEventFunction: (player: Player) => void) => {
+export const onSinglePlayerUpdate = (singlePlayerUpdateEventFunction: SinglePlayerUpdateFn) => {
   singlePlayerUpdateFn = singlePlayerUpdateEventFunction;
 };
 
-export const onPlayerListUpdate = (playerListUpdateEventFunction: (playerList: Player[]) => void) => {
+export const onPlayerListUpdate = (playerListUpdateEventFunction:PlayerListUpdateFn) => {
   playerListUpdateFn = playerListUpdateEventFunction;
 };
 
-export const onStartGame = (startGameEventFunction: (playerList: Player[]) => void) => {
+export const onStartGame = (startGameEventFunction: StartGameFn) => {
   startGameFn = startGameEventFunction;
 };
 
@@ -91,6 +97,10 @@ export const onStartRound = (startRoundEventFunction: (roundOptions:RoundOptions
 
 export const onTimerUpdate =(newTimerUpdateFn:(secondsLeftInTimer:number)=>void)=>{
   timerUpdateFn=newTimerUpdateFn
+}
+
+export const onRequestQuestions =(newSendQuestionsFn:SendQuestionsFn)=>{
+  sendQuestionsFn=newSendQuestionsFn
 }
 
 export const setup = (endpointURL: string) => {
@@ -199,6 +209,14 @@ const startRoundStartListener = () => {
   });
 };
 
+const startQuestionRequestListener = () => {
+  clientSocket.on('collectQuestions', (callback:CallbackFunction) => {
+    callback({
+      ok:true,
+      questions: sendQuestionsFn()
+    })
+  });
+};
 
 const startStartGameListener = () => {
   clientSocket.on('startGame', (gameOptions: any) => {
@@ -235,6 +253,7 @@ const startLobbyListeners = () => {
 // Start listeners specific to the game
 const startGameListeners = () => {
   // Start game specific listeners
+  startQuestionRequestListener()
   // startRoundStartListener();
   // startRoundEndListenre ......
 };
@@ -249,10 +268,10 @@ const timerSync = async (seconds:number,timerStart:number)=>{
   // Function, delay, parameter
   setTimeout(
       startTimer,
-      waitTime,seconds)
+      waitTime,)
 }
 
-const startTimer = (seconds:number)=>{
+const startTimer = ()=>{
   console.log('Starting timer')
   for (let index = secondsLeft; index--;) {
     setTimeout(
