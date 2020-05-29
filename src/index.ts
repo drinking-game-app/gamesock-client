@@ -30,7 +30,7 @@ export interface Player {
   // socketIO id
   readonly id: string;
   name: string;
-  score: boolean;
+  score: number;
 }
 export interface Message {
   ok: boolean;
