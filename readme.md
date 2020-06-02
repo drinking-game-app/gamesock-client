@@ -1,3 +1,4 @@
+![NPM Version](https://img.shields.io/npm/v/@rossmacd/gamesock-server?style=for-the-badge)
 # Gamesock-Client
 A Client-side Networking library to handle the websocket portion of drinking games built with node
 
