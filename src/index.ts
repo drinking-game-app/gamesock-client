@@ -37,17 +37,25 @@ export interface Message {
   msg: string;
 }
 
-export interface RoundOptions{
+export type RoundOptions = {
   // Current round number
-  roundNum:number;
+  roundNum: number;
   // Players picked to be in the hotseat
-  hotseatPlayers: [Player,Player];
+  hotseatPlayers: [Player, Player];
   // Number of questions to answer
-  numQuestions:number;
-  // Time to fill in questions in seconds
-  time:number
-  // Time to start first timer: Date.now foramt
-  timerStart:number
+  numQuestions: number;
+  // // Time to fill in questions in seconds
+  time?: number;
+  // // Time to start first timer: Date.now foramt
+  timerStart?: number;
+};
+
+export interface Question {
+  playerId: string;
+  question: string;
+  // Time to Start
+  tts?: number;
+  answers?: number[];
 }
 export type CallbackFunction = (data: any, error?: string) => void;
 
@@ -57,7 +65,7 @@ export type SinglePlayerUpdateFn = (player: Player) => void;
 export type PlayerListUpdateFn = (player: Player[]) => void;
 export type StartGameFn = (gameOptions: any) => void;
 export type SendQuestionsFn = ()=>string[];
-
+export type StartHotseatFn = (allQuestions:Question[], hotseatOptions:any) => void;
 
 // tslint:disable-next-line: no-empty
 let messageFn:MessageFn = (message: Message) => {};
@@ -73,7 +81,8 @@ let startRoundFn = (roundOptions:RoundOptions) => {};
 let timerUpdateFn = (secondsLeftInTimer:number) => {};
 // tslint:disable-next-line: no-empty
 let sendQuestionsFn:SendQuestionsFn=()=>['Questions were not answered']
-
+// tslint:disable-next-line: no-empty
+let onStartHotseatFn: StartHotseatFn = () => { };
 
 export const onMessage = (messageEventFunction: MessageFn) => {
   messageFn = messageEventFunction;
@@ -105,6 +114,9 @@ export const onRequestQuestions =(newSendQuestionsFn:SendQuestionsFn)=>{
 
 export const setup = (endpointURL: string) => {
   url = endpointURL;
+};
+export const onStartHotseat = (newOnStartHotseatFn:StartHotseatFn) => {
+  onStartHotseatFn = newOnStartHotseatFn;
 };
 
 const connect = () => {
@@ -175,6 +187,11 @@ export const getPlayers = (lobbyName: string) => {
   clientSocket.emit('getPlayers', lobbyName);
 };
 
+export const sendAnswer = (lobbyName: string, question:number,answer:number) => {
+  clientSocket.emit('hotseatAnswer', lobbyName, question,answer);
+}
+
+
 // Start the listener to handle messages
 const startMessageListener = () => {
   clientSocket.on('message', (msgData: Message) => {
@@ -205,7 +222,7 @@ const startRoundStartListener = () => {
     console.log('roundOptions',roundOptions)
     startRoundFn(roundOptions)
     // start a synchronised timer
-    timerSync(roundOptions.time, roundOptions.timerStart);
+    timerSync(roundOptions.time!, roundOptions.timerStart!);
   });
 };
 
@@ -230,7 +247,14 @@ const startStartGameListener = () => {
   });
 };
 
-
+const startHotseatListener = () => {
+  clientSocket.on('startHotseat', (allQuestions:Question[], hotseatOptions:any) => {
+    onStartHotseatFn(allQuestions, hotseatOptions);
+    for (const question of allQuestions) {
+      timerSync(3,question.tts!)
+    }
+  })
+}
 
 
 // Start listeners specific to the lobby
@@ -254,6 +278,7 @@ const startLobbyListeners = () => {
 const startGameListeners = () => {
   // Start game specific listeners
   startQuestionRequestListener()
+  startHotseatListener();
   // startRoundStartListener();
   // startRoundEndListenre ......
 };
@@ -261,17 +286,19 @@ const startGameListeners = () => {
 
 const timerSync = async (seconds:number,timerStart:number)=>{
   console.log('Starting timerSync')
-  secondsLeft=seconds;
+  // secondsLeft=seconds;
 // @ts-ignore
   const startTime:number=ts.now();
   const waitTime=timerStart-startTime;
   // Function, delay, parameter
   setTimeout(
       startTimer,
-      waitTime,)
+      waitTime,
+      seconds)
 }
 
-const startTimer = ()=>{
+const startTimer = (seconds:number) => {
+  secondsLeft=seconds;
   console.log('Starting timer')
   for (let index = secondsLeft; index--;) {
     setTimeout(
@@ -296,5 +323,6 @@ export default {
   onPlayerListUpdate,
   onStartGame,
   startGame,
-  onTimerUpdate
+  onTimerUpdate,
+  onStartHotseat
 };
