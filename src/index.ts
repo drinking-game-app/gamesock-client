@@ -67,6 +67,7 @@ export type StartGameFn = (gameOptions: any) => void;
 export type SendQuestionsFn = ()=>string[];
 export type StartHotseatFn = (allQuestions:Question[], hotseatOptions:any) => void;
 export type RoundEndFn = () => void;
+export type HotseatAnswer = (questionIndex:number, answers:number[]) => void;
 
 // tslint:disable-next-line: no-empty
 let messageFn:MessageFn = (message: Message) => {};
@@ -86,6 +87,8 @@ let sendQuestionsFn:SendQuestionsFn=()=>['Questions were not answered']
 let onStartHotseatFn: StartHotseatFn = () => { };
 // tslint:disable-next-line: no-empty
 let onRoundEndFn: RoundEndFn = () => { }
+// tslint:disable-next-line: no-empty
+let onHotseatAnswerFn: HotseatAnswer = (questionIndex:number, answers:number[]) => { }
 
 export const onMessage = (messageEventFunction: MessageFn) => {
   messageFn = messageEventFunction;
@@ -120,6 +123,9 @@ export const setup = (endpointURL: string) => {
 };
 export const onStartHotseat = (newOnStartHotseatFn:StartHotseatFn) => {
   onStartHotseatFn = newOnStartHotseatFn;
+};
+export const onHotseatAnswer = (newOnHotseatAnswerFn:HotseatAnswer) => {
+  onHotseatAnswerFn = newOnHotseatAnswerFn;
 };
 export const onRoundEnd = (newOnRoundEndFn:RoundEndFn) => {
   onRoundEndFn = newOnRoundEndFn;
@@ -261,6 +267,12 @@ const startHotseatListener = () => {
     }
   })
 }
+const startHotseatAnswerListener = () => {
+  clientSocket.on('hotseatResult', (questionIndex:number, answers:number[]) => {
+    onHotseatAnswerFn(questionIndex,answers);
+  })
+}
+
 const startRoundEndListener = () => {
   clientSocket.on('roundEnd', () => {
     onRoundEndFn();
@@ -290,8 +302,7 @@ const startGameListeners = () => {
   startQuestionRequestListener()
   startHotseatListener();
   startRoundEndListener();
-  // startRoundStartListener();
-  // startRoundEndListenre ......
+  startHotseatAnswerListener()
 };
 
 
@@ -336,5 +347,6 @@ export default {
   startGame,
   onTimerUpdate,
   onStartHotseat,
-  onRoundEnd
+  onRoundEnd,
+  onHotseatAnswer
 };
