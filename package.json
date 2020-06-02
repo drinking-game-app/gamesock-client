@@ -7,7 +7,7 @@
   "scripts": {
     "test": "jest --detectOpenHandles --runInBand --coverage",
     "build": "tsc -p declaration.tsconfig.json",
-    "prepublishOnly": "npm test && npm run lint",
+    "prepublishOnly": "npm run lint && npm run build",
     "preversion": "npm run lint",
     "lint": "tslint -p tsconfig.json"
   },

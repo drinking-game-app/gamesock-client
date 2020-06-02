@@ -1,6 +1,9 @@
 # Gamesock-Client
 A Client-side Networking library to handle the websocket portion of drinking games built with node
 
+## To install latest published:
+`npm install @rossmacd/gamesock-server`
+
 ## To install - (For Development):
 Clone the package using
 

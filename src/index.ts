@@ -6,6 +6,7 @@ let url = `http://localhost:3000`;
 let clientSocket: SocketIOClient.Socket;
 
 // Timer shit
+// tslint:disable-next-line: prefer-const
 let timerUrl='http://localhost:3000/timesync';
 // Timesync variable
 // @ts-ignore
