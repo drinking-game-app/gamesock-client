@@ -119,8 +119,9 @@ export const onRequestQuestions =(newSendQuestionsFn:SendQuestionsFn)=>{
   sendQuestionsFn=newSendQuestionsFn
 }
 
-export const setup = (endpointURL: string) => {
+export const setup = (endpointURL: string,timerEndpoint:string) => {
   url = endpointURL;
+  timerUrl = timerEndpoint;
 };
 export const onStartHotseat = (newOnStartHotseatFn:StartHotseatFn) => {
   onStartHotseatFn = newOnStartHotseatFn;
