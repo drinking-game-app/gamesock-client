@@ -50,7 +50,15 @@ export type RoundOptions = {
   // // Time to start first timer: Date.now foramt
   timerStart?: number;
 };
+export interface HotseatOptions{
+  // The time to answer each question
+  tta:number
+}
 
+export interface GameOptions{
+  // Total number of rounds in the game
+  rounds:number
+}
 export interface Question {
   playerId: string;
   question: string;
@@ -64,9 +72,9 @@ export type MessageFn = (message: Message) => void;
 // export type PlayerReadyFn = (playerNum: number) =>void;
 export type SinglePlayerUpdateFn = (player: Player) => void;
 export type PlayerListUpdateFn = (player: Player[]) => void;
-export type StartGameFn = (gameOptions: any) => void;
+export type StartGameFn = (gameOptions: GameOptions) => void;
 export type SendQuestionsFn = ()=>string[];
-export type StartHotseatFn = (allQuestions:Question[], hotseatOptions:any) => void;
+export type StartHotseatFn = (allQuestions:Question[], hotseatOptions:HotseatOptions) => void;
 export type RoundEndFn = () => void;
 export type HotseatAnswer = (questionIndex:number, answers:number[]) => void;
 
@@ -77,7 +85,7 @@ let singlePlayerUpdateFn:SinglePlayerUpdateFn = (player: Player) => {};
 // tslint:disable-next-line: no-empty
 let playerListUpdateFn:PlayerListUpdateFn = (playerList: Player[]) => {};
 // tslint:disable-next-line: no-empty
-let startGameFn:StartGameFn = (gameOptions: any) => {};
+let startGameFn:StartGameFn = (gameOptions: GameOptions) => {};
 // tslint:disable-next-line: no-empty
 let startRoundFn = (roundOptions:RoundOptions) => {};
 // tslint:disable-next-line: no-empty
@@ -144,12 +152,12 @@ const connect = () => {
  *  JoinLobby will join a currently open lobby
  * @param lobbyName The name of the lobby you want to join as a string
  */
-export const joinLobby = async (lobbyName: string) => {
+export const joinLobby = async (lobbyName: string,username:string) => {
   clientSocket = connect();
   // Start all listeners for events from server
   startLobbyListeners();
   return new Promise<Player[]>((res, rej) => {
-    clientSocket.emit('joinLobby', lobbyName, (players: Player[]) => {
+    clientSocket.emit('joinLobby', lobbyName,username, (players: Player[]) => {
       if (players.length === 0) {
         rej('Could not join lobby');
       }
@@ -163,11 +171,11 @@ export const joinLobby = async (lobbyName: string) => {
  * @param lobbyName The name of the lobby you want to join as a string
  * @param authToken The auth token to verify the user
  */
-export const createLobby = async (lobbyName: string, authToken: string) => {
+export const createLobby = async (lobbyName: string,username:string, authToken: string) => {
   clientSocket = connect();
   startLobbyListeners();
   return new Promise<Player[]>((res, rej) => {
-    clientSocket.emit('createLobby', lobbyName, authToken, (players: Player[]) => {
+    clientSocket.emit('createLobby', lobbyName,username, authToken, (players: Player[]) => {
       if (players.length === 0) {
         rej('Could not create lobby');
       }
@@ -250,7 +258,7 @@ const startQuestionRequestListener = () => {
 };
 
 const startStartGameListener = () => {
-  clientSocket.on('startGame', (gameOptions: any) => {
+  clientSocket.on('startGame', (gameOptions: GameOptions) => {
     startGameFn(gameOptions);
 
     // Show the synced up time
@@ -262,7 +270,7 @@ const startStartGameListener = () => {
 };
 
 const startHotseatListener = () => {
-  clientSocket.on('startHotseat', (allQuestions:Question[], hotseatOptions:any) => {
+  clientSocket.on('startHotseat', (allQuestions:Question[], hotseatOptions:HotseatOptions) => {
     onStartHotseatFn(allQuestions, hotseatOptions);
     for (const question of allQuestions) {
       timerSync(3,question.tts!)

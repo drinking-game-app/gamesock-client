@@ -1,0 +1,13 @@
+diff --git a/node_modules/timesync/lib/request/request.js b/node_modules/timesync/lib/request/request.js
+index d4e3a8c..db46fb6 100644
+--- a/node_modules/timesync/lib/request/request.js
++++ b/node_modules/timesync/lib/request/request.js
+@@ -1,6 +1,6 @@
+ 'use strict';
+ 
+-var isBrowser = typeof window !== 'undefined';
++var isBrowser = typeof window !== 'undefined' || navigator.product == 'ReactNative';
+ 
+ // FIXME: how to do conditional loading this with ES6 modules?
+ module.exports = isBrowser ? require('./request.browser') : require('./request.node');
+\ No newline at end of file
