@@ -1,6 +1,6 @@
 {
   "name": "@rossmacd/gamesock-client",
-  "version": "0.0.3",
+  "version": "0.0.31",
   "description": "A client side library for connecting to gamesock servers",
   "main": "lib/index.js",
   "types": "./lib/index.d.ts",
@@ -14,6 +14,7 @@
   },
   "author": "Ross MacDonald & Ultan O Nuaillain",
   "license": "ISC",
+  "bundleDependencies": ["timesync"],
   "devDependencies": {
     "@types/express": "^4.17.6",
     "@types/jest": "^25.2.1",
@@ -30,6 +31,7 @@
   "dependencies": {
     "socket.io-client": "^2.3.0",
     "timesync": "^1.0.5",
-    "patch-package": "^6.2.2"
+    "patch-package": "^6.2.2",
+    "promise": "8.0.1"
   }
 }
