@@ -200,6 +200,10 @@ export const startGame = (lobbyName: string) => {
   clientSocket.emit('startGame', lobbyName);
 };
 
+
+export const startNextRound=(lobbyName:string)=>{
+  clientSocket.emit('startNextRound',lobbyName)
+}
 /**
  * Manually trigger a sync of the players,
  * Will return an array of players in the order of the server
