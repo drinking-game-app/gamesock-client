@@ -1,6 +1,6 @@
 import ioClient from 'socket.io-client';
 // @ts-ignore
-import * as timesync from 'timesync';
+import * as timesync from './tsLib/timesync';
 
 let url = `http://localhost:3000`;
 let clientSocket: SocketIOClient.Socket;
