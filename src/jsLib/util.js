@@ -1,10 +1,12 @@
+// var Promise = require('./Promise');
+
 /**
  * Resolve a promise after a delay
  * @param {number} delay    A delay in milliseconds
  * @returns {Promise} Resolves after given delay
  */
-export const wait=(delay:number)=> {
-  return new Promise((resolve)=> {
+export function wait(delay) {
+  return new Promise(function (resolve) {
     setTimeout(resolve, delay);
   });
 }
@@ -15,15 +17,15 @@ export const wait=(delay:number)=> {
  * @param {number} times
  * @return {Promise}
  */
-export const repeat=(fn:()=>Promise<number>, times:number)=> {
-  return new Promise((resolve, reject)=> {
-    let count = 0;
-    const results:number[] = [];
+export function repeat(fn, times) {
+  return new Promise(function (resolve, reject) {
+    var count = 0;
+    var results = [];
 
-    const recurse=()=> {
+    function recurse() {
       if (count < times) {
         count++;
-        fn().then( (result)=> {
+        fn().then(function (result) {
           results.push(result);
           recurse();
         })
@@ -43,9 +45,9 @@ export const repeat=(fn:()=>Promise<number>, times:number)=> {
  * @param {function} callback    A callback returning a Promise
  * @returns {Promise}
  */
-export const whilst=(condition:()=>boolean, callback:()=>Promise<number>)=> {
-  return new Promise( (resolve, reject)=> {
-    const recurse=() =>{
+export function whilst(condition, callback) {
+  return new Promise(function (resolve, reject) {
+    function recurse() {
       if (condition()) {
         callback().then(() => recurse());
       }
@@ -62,7 +64,7 @@ export const whilst=(condition:()=>boolean, callback:()=>Promise<number>)=> {
  * Simple id generator
  * @returns {number} Returns a new id
  */
-export const nextId=()=> {
+export function nextId() {
   return _id++;
 }
-let _id = 0;
+var _id = 0;

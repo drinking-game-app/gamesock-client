@@ -1,14 +1,7 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.fetch = fetch;
-exports.post = post;
-function fetch(method, url, body, headers, callback, timeout) {
+export function fetch (method, url, body, headers, callback, timeout) {
   try {
     var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
+    xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
         var contentType = xhr.getResponseHeader('Content-Type');
         if (contentType && contentType.indexOf('json') !== -1) {
@@ -19,7 +12,8 @@ function fetch(method, url, body, headers, callback, timeout) {
           } catch (err) {
             callback(err, null, xhr.status);
           }
-        } else {
+        }
+        else {
           // return text
           callback(null, xhr.responseText, xhr.status);
         }
@@ -42,21 +36,23 @@ function fetch(method, url, body, headers, callback, timeout) {
 
     if (typeof body === 'string') {
       xhr.send(body);
-    } else if (body) {
-      // body is an object
+    }
+    else if (body) { // body is an object
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(JSON.stringify(body));
-    } else {
+    }
+    else {
       xhr.send();
     }
-  } catch (err) {
+  }
+  catch (err) {
     callback(err, null, 0);
   }
 }
 
-function post(url, body, timeout) {
-  return new Promise(function (resolve, reject) {
-    var callback = function callback(err, res, status) {
+export function post (url, body, timeout) {
+  return new Promise((resolve, reject) => {
+    var callback = (err, res, status) => {
       if (err) {
         return reject(err);
       }
@@ -64,6 +60,6 @@ function post(url, body, timeout) {
       resolve([res, status]);
     };
 
-    fetch('POST', url, body, null, callback, timeout);
+    fetch('POST', url, body, null, callback, timeout)
   });
 }

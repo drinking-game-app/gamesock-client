@@ -1,50 +1,57 @@
-"use strict";
+import { TimeSync } from "./timesync";
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = emitter;
+
+
+export interface Emitter{
+  emit:()=>void
+  on:Emitter
+  off:Emitter
+  list:Callback[]
+}
+export type Callback = (data:any)=>void
 /**
  * Turn an object into an event emitter. Attaches methods `on`, `off`,
  * `emit`, and `list`
  * @param {Object} obj
  * @return {Object} Returns the original object, extended with emitter functions
  */
-function emitter(obj) {
-  var _callbacks = {};
+ const emitter=(obj:ToEmit):TimeSync=> {
+  const _callbacks:{[event:string]:Callback[]} = {};
 
-  obj.emit = function (event, data) {
-    var callbacks = _callbacks[event];
-    callbacks && callbacks.forEach(function (callback) {
-      return callback(data);
-    });
+  obj.emit =  (event:string, data:any)=> {
+    const callbacks = _callbacks[event];
+    if(callbacks) callbacks.forEach(callback => callback(data));
   };
 
-  obj.on = function (event, callback) {
-    var callbacks = _callbacks[event] || (_callbacks[event] = []);
+  obj.on =  (event:string, callback:Callback)=> {
+    const callbacks = _callbacks[event] || (_callbacks[event] = []);
     callbacks.push(callback);
     return obj;
   };
 
-  obj.off = function (event, callback) {
+  obj.off =  (event:string, callback:Callback)=> {
     if (callback) {
-      var callbacks = _callbacks[event];
-      var index = callbacks.indexOf(callback);
+      const callbacks = _callbacks[event];
+      const index = callbacks.indexOf(callback);
       if (index !== -1) {
         callbacks.splice(index, 1);
       }
       if (callbacks.length === 0) {
         delete _callbacks[event];
       }
-    } else {
+    }
+    else {
       delete _callbacks[event];
     }
     return obj;
   };
 
-  obj.list = function (event) {
+  obj.list =  (event:string)=> {
     return _callbacks[event] || [];
   };
-
-  return obj;
+// @ts-ignore
+  return obj as TimeSync & Emitter;
 }
+
+
+export default emitter

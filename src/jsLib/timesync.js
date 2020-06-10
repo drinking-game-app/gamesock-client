@@ -8,51 +8,17 @@
 
 import * as util from './util.js';
 import * as stat from './stat.js';
-import * as request from './request/request.browser';
-import emitter, { Emitter } from './emitter.js';
+import * as request from './request/request.browser.js';
+import emitter from './emitter.js';
+// var Promise = require('./Promise');
 
-export interface Options{
-      interval?:number;
-      timeout?: number
-      delay?: number
-      repeat?: number
-      peers?:string[]
-      server?: string|null
-      now?: ()=>number
-}
-
-export interface TimeSync{
-  options:Options;
-  offset:number;
-  _timeout:number|null;
-  _inProgress:{[id:string]:(data:any)=>void}
-  _isFirst:boolean,
-  send:(to:string, data:any, timeout?:number)=>void;
-  receive:  (from:string|undefined, data:any)=> void;
-  _handleRPCSendError:(id:string, reject:(value?:unknown)=>void) =>void
-  rpc:(to:string, method:string, params:any)=>Promise<unknown>
-  sync:()=>void
-  _validOffset:(offset:number)=>void
-  _syncWithPeer: (peer:string)=>boolean
-  _getOffset:  (peer:string)=> Promise<{roundtrip: number, offset: number} | null>
-  now:()=>number
-  destroy:()=>void
-}
 /**
  * Factory function to create a timesync instance
  * @param {Object} [options]  TODO: describe options
  * @return {Object} Returns a new timesync instance
  */
-export function create(options:Options|undefined={
-  interval: 60 * 60 * 1000, // interval for doing synchronizations in ms. Set to null to disable auto sync
-  timeout: 10000,           // timeout for requests to fail in ms
-  delay: 1000,              // delay between requests in ms
-  repeat: 5,                // number of times to do a request to one peer
-  peers: [],                // uri's or id's of the peers
-  server: null,             // uri of a single server (master/slave configuration)
-  now: Date.now             // function returning the system time
-}) {
-  let timesync:TimeSync = {
+export function create(options) {
+  var timesync = {
     // configurable options
     options: {
       interval: 60 * 60 * 1000, // interval for doing synchronizations in ms. Set to null to disable auto sync
@@ -86,13 +52,14 @@ export function create(options:Options|undefined={
      * @param {string} to
      * @param {*} data
      */
-    send:  (to:string, data:any, timeout?:number)=> {
-        return request.post(to, data, timeout!)
-            .then((val)=> {
-                const res = val[0];
-                timesync.receive(to, res);
+    send: function (to, data, timeout) {
+        return request.post(to, data, timeout)
+            .then(function (val) {
+              var res = val[0];
+
+              timesync.receive(to, res);
             })
-            .catch((err)=> {
+            .catch(function (err) {
               emitError(err);
             });
     },
@@ -102,17 +69,17 @@ export function create(options:Options|undefined={
      * @param {string | undefined} [from]
      * @param {*} data
      */
-    receive:  (from:string|undefined, data:any)=> {
+    receive: function (from, data) {
       if (data === undefined) {
         data = from;
         from = undefined;
       }
 
-      if (data &&  data.id in timesync._inProgress) {
+      if (data && data.id in timesync._inProgress) {
         // this is a reply
         timesync._inProgress[data.id](data.result);
       }
-      else if (data && data.id !== undefined&&from!==undefined) {
+      else if (data && data.id !== undefined) {
         // this is a request from an other peer
         // reply with our current time
         timesync.send(from, {
@@ -123,7 +90,7 @@ export function create(options:Options|undefined={
       }
     },
 
-    _handleRPCSendError:  (id:string, reject:(value?:unknown)=>void) => {
+    _handleRPCSendError: function (id, reject, err) {
       delete timesync._inProgress[id];
       reject(new Error('Send failure'));
     },
@@ -135,25 +102,24 @@ export function create(options:Options|undefined={
      * @param {*} [params]
      * @returns {Promise}
      */
-    rpc:  (to:string, method:string, params:any) => {
-      const id = util.nextId();
-      let resolve:(value?:unknown)=>void;
-      let reject:(value?:unknown)=>void;
-      const deferred = new Promise((res, rej) => {
+    rpc: function (to, method, params) {
+      var id = util.nextId();
+      var resolve, reject;
+      var deferred = new Promise((res, rej) => {
         resolve = res;
         reject = rej;
       });
 
-      timesync._inProgress[id] =  (data:any) =>{
+      timesync._inProgress[id] = function (data) {
         delete timesync._inProgress[id];
 
         resolve(data);
       };
 
-      let sendResult;
-
+      let sendResult; 
+      
       try {
-        sendResult= timesync.send(to, {
+        sendResult = timesync.send(to, {
           jsonrpc: '2.0',
           id: id,
           method: method,
@@ -163,7 +129,7 @@ export function create(options:Options|undefined={
         timesync._handleRPCSendError(id, reject, err);
       }
 
-      if (sendResult && (sendResult instanceof Promise)) {
+      if (sendResult && (sendResult instanceof Promise || (sendResult.then && sendResult.catch))) {
         sendResult.catch(timesync._handleRPCSendError.bind(this, id, reject));
       } else {
         console.warn('Send should return a promise');
@@ -176,10 +142,10 @@ export function create(options:Options|undefined={
      * Synchronize now with all configured peers
      * Docs: http://www.mine-control.com/zack/timesync/timesync.html
      */
-    sync:  ()=> {
+    sync: function () {
       timesync.emit('sync', 'start');
 
-      const peers = timesync.options.server ?
+      var peers = timesync.options.server ?
           [timesync.options.server] :
           timesync.options.peers;
       return Promise
@@ -201,7 +167,7 @@ export function create(options:Options|undefined={
      * @returns {boolean}
      * @private
      */
-    _validOffset:  (offset:number)=> {
+    _validOffset: function (offset) {
       return offset !== null && !isNaN(offset) && isFinite(offset);
     },
 
@@ -212,37 +178,37 @@ export function create(options:Options|undefined={
      *                                    or null if failed to sync with this peer.
      * @private
      */
-    _syncWithPeer: (peer:string)=> {
+    _syncWithPeer: function (peer) {
       // retrieve the offset of a peer, then wait 1 sec
-      const all:number[] = [];
+      var all = [];
 
-      const sync =()=> {
-        return timesync._getOffset(peer).then((result:number) => all.push(result));
+      function sync () {
+        return timesync._getOffset(peer).then(result => all.push(result));
       }
 
-      const waitAndSync=()=> {
+      function waitAndSync() {
         return util.wait(timesync.options.delay).then(sync);
       }
 
-      const notDone=()=> {
+      function notDone() {
         return all.length < timesync.options.repeat;
       }
 
       return sync()
-          .then( ()=> {
+          .then(function () {
             return util.whilst(notDone, waitAndSync)
           })
-          .then( ()=> {
+          .then(function () {
             // filter out null results
-            const results = all.filter(result => result !== null);
+            var results = all.filter(result => result !== null);
 
             // calculate the limit for outliers
-            const roundtrips = results.map(result => result.roundtrip);
-            const limit = stat.median(roundtrips) + stat.std(roundtrips);
+            var roundtrips = results.map(result => result.roundtrip);
+            var limit = stat.median(roundtrips) + stat.std(roundtrips);
 
             // filter all results which have a roundtrip smaller than the mean+std
-            const filtered = results.filter(result => result.roundtrip < limit);
-            const offsets = filtered.map(result => result.offset);
+            var filtered = results.filter(result => result.roundtrip < limit);
+            var offsets = filtered.map(result => result.offset);
 
             // return the new offset
             return (offsets.length > 0) ? stat.mean(offsets) : null;
@@ -255,14 +221,14 @@ export function create(options:Options|undefined={
      * @returns {Promise.<{roundtrip: number, offset: number} | null>}
      * @private
      */
-    _getOffset:  (peer:string)=> {
-      const start = timesync.options.now(); // local system time
+    _getOffset: function (peer) {
+      var start = timesync.options.now(); // local system time
 
       return timesync.rpc(peer, 'timesync')
-          .then((timestamp) =>{
-            const end = timesync.options.now(); // local system time
-            const roundtrip = end - start;
-            const offset = timestamp - end + roundtrip / 2; // offset from local system time
+          .then(function (timestamp) {
+            var end = timesync.options.now(); // local system time
+            var roundtrip = end - start;
+            var offset = timestamp - end + roundtrip / 2; // offset from local system time
 
             // apply the first ever retrieved offset immediately.
             if (timesync._isFirst) {
@@ -276,7 +242,7 @@ export function create(options:Options|undefined={
               offset: offset
             };
           })
-          .catch((err)=> {
+          .catch(function (err) {
             // just ignore failed requests, return null
             return null;
           });
@@ -286,7 +252,7 @@ export function create(options:Options|undefined={
      * Get the current time
      * @returns {number} Returns a timestamp
      */
-    now:() =>{
+    now: function () {
       return timesync.options.now() + timesync.offset;
     },
 
@@ -295,7 +261,7 @@ export function create(options:Options|undefined={
      * If timesync is currently executing a synchronization, this
      * synchronization will be finished first.
      */
-    destroy: ()=> {
+    destroy: function () {
       clearTimeout(timesync._timeout);
     }
   };
@@ -306,18 +272,31 @@ export function create(options:Options|undefined={
       throw new Error('Configure either option "peers" or "server", not both.');
     }
 
-    timesync.options={...timesync.options, options}
+    for (var prop in options) {
+      if (options.hasOwnProperty(prop)) {
+        if (prop === 'peers' && typeof options.peers === 'string') {
+          // split a comma separated string with peers into an array
+          timesync.options.peers = options.peers
+              .split(',')
+              .map(peer => peer.trim())
+              .filter(peer => peer !== '');
+        }
+        else {
+          timesync.options[prop] = options[prop];
+        }
+      }
+    }
   }
 
   // turn into an event emitter
-  timesync = emitter(timesync);
+  emitter(timesync);
 
   /**
    * Emit an error message. If there are no listeners, the error is outputted
    * to the console.
    * @param {Error} err
    */
-   const emitError=(err:Error)=> {
+  function emitError(err) {
     if (timesync.list('error').length > 0) {
       timesync.emit('error', err);
     }
@@ -332,10 +311,10 @@ export function create(options:Options|undefined={
 
     // synchronize immediately on the next tick (allows to attach event
     // handlers before the timesync starts).
-    setTimeout( () =>{
+    setTimeout(function () {
       timesync.sync().catch(err => emitError(err));
     }, 0);
   }
 
-  return timesync as TimeSync & Emitter;
+  return timesync;
 }
