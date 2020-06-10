@@ -1,5 +1,5 @@
 import ioClient from 'socket.io-client';
-// @ts-ignore
+
 import * as timesync from './tsLib/timesync';
 
 let url = `http://localhost:3000`;
@@ -9,8 +9,7 @@ let clientSocket: SocketIOClient.Socket;
 // tslint:disable-next-line: prefer-const
 let timerUrl='http://localhost:3000/timesync';
 // Timesync variable
-// @ts-ignore
-let ts;
+let ts: timesync.TimeSync;
 
 export let secondsLeft=0;
 

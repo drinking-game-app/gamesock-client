@@ -1,21 +1,10 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.wait = wait;
-exports.repeat = repeat;
-exports.whilst = whilst;
-exports.nextId = nextId;
-var Promise = require('./Promise');
-
 /**
  * Resolve a promise after a delay
  * @param {number} delay    A delay in milliseconds
  * @returns {Promise} Resolves after given delay
  */
-function wait(delay) {
-  return new Promise(function (resolve) {
+export const wait=(delay:number)=> {
+  return new Promise((resolve)=> {
     setTimeout(resolve, delay);
   });
 }
@@ -26,19 +15,20 @@ function wait(delay) {
  * @param {number} times
  * @return {Promise}
  */
-function repeat(fn, times) {
-  return new Promise(function (resolve, reject) {
-    var count = 0;
-    var results = [];
+export const repeat=(fn:()=>Promise<number>, times:number)=> {
+  return new Promise((resolve, reject)=> {
+    let count = 0;
+    const results:number[] = [];
 
-    function recurse() {
+    const recurse=()=> {
       if (count < times) {
         count++;
-        fn().then(function (result) {
+        fn().then( (result)=> {
           results.push(result);
           recurse();
-        });
-      } else {
+        })
+      }
+      else {
         resolve(results);
       }
     }
@@ -53,14 +43,13 @@ function repeat(fn, times) {
  * @param {function} callback    A callback returning a Promise
  * @returns {Promise}
  */
-function whilst(condition, callback) {
-  return new Promise(function (resolve, reject) {
-    function recurse() {
+export const whilst=(condition:()=>boolean, callback:()=>Promise<number>)=> {
+  return new Promise( (resolve, reject)=> {
+    const recurse=() =>{
       if (condition()) {
-        callback().then(function () {
-          return recurse();
-        });
-      } else {
+        callback().then(() => recurse());
+      }
+      else {
         resolve();
       }
     }
@@ -73,7 +62,7 @@ function whilst(condition, callback) {
  * Simple id generator
  * @returns {number} Returns a new id
  */
-function nextId() {
+export const nextId=()=> {
   return _id++;
 }
-var _id = 0;
+let _id = 0;
