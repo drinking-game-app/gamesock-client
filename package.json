@@ -1,6 +1,6 @@
 {
   "name": "@rossmacd/gamesock-client",
-  "version": "0.0.35",
+  "version": "0.1.0",
   "description": "A client side library for connecting to gamesock servers",
   "main": "lib/index.js",
   "types": "./lib/index.d.ts",
@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "socket.io-client": "^2.3.0",
-    "debug": "3.1.0",
-    "promise": "8.0.1"
+    "debug": "3.1.0"
   }
 }

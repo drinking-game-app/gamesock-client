@@ -1,6 +1,8 @@
 import ioClient from 'socket.io-client';
+// import {TimeSync} from './tsLib/timesync';
 
-import * as timesync from './tsLib/timesync';
+// @ts-ignore
+import * as timesync from './jsLib/timesync';
 
 let url = `http://localhost:3000`;
 let clientSocket: SocketIOClient.Socket;
@@ -9,11 +11,9 @@ let clientSocket: SocketIOClient.Socket;
 // tslint:disable-next-line: prefer-const
 let timerUrl='http://localhost:3000/timesync';
 // Timesync variable
-let ts: timesync.TimeSync;
+let ts:any;
 
 export let secondsLeft=0;
-
-
 
 /**
  * The lobby object
@@ -75,7 +75,9 @@ export type StartGameFn = (gameOptions: GameOptions) => void;
 export type SendQuestionsFn = ()=>string[];
 export type StartHotseatFn = (allQuestions:Question[], hotseatOptions:HotseatOptions) => void;
 export type RoundEndFn = () => void;
-export type HotseatAnswer = (questionIndex:number, answers:number[]) => void;
+export type HotseatAnswerFn = (questionIndex:number, answers:number[]) => void;
+export type ErrorFn = (error:string) => void;
+export type DisconnectFn = (reason:string) => void;
 
 // tslint:disable-next-line: no-empty
 let messageFn:MessageFn = (message: Message) => {};
@@ -96,7 +98,11 @@ let onStartHotseatFn: StartHotseatFn = () => { };
 // tslint:disable-next-line: no-empty
 let onRoundEndFn: RoundEndFn = () => { }
 // tslint:disable-next-line: no-empty
-let onHotseatAnswerFn: HotseatAnswer = (questionIndex:number, answers:number[]) => { }
+let onHotseatAnswerFn: HotseatAnswerFn = (questionIndex:number, answers:number[]) => { }
+// tslint:disable-next-line: no-empty
+let onErrorFn: ErrorFn = (error:string) => { }
+// tslint:disable-next-line: no-empty
+let onDisconnectFn: DisconnectFn = (reason:string) => { }
 
 export const onMessage = (messageEventFunction: MessageFn) => {
   messageFn = messageEventFunction;
@@ -133,13 +139,18 @@ export const setup = (endpointURL: string,timerEndpoint:string) => {
 export const onStartHotseat = (newOnStartHotseatFn:StartHotseatFn) => {
   onStartHotseatFn = newOnStartHotseatFn;
 };
-export const onHotseatAnswer = (newOnHotseatAnswerFn:HotseatAnswer) => {
+export const onHotseatAnswer = (newOnHotseatAnswerFn:HotseatAnswerFn) => {
   onHotseatAnswerFn = newOnHotseatAnswerFn;
 };
 export const onRoundEnd = (newOnRoundEndFn:RoundEndFn) => {
   onRoundEndFn = newOnRoundEndFn;
 };
-
+export const onDisconnect = (newDisconnectFn:DisconnectFn) => {
+  onDisconnectFn = newDisconnectFn;
+};
+export const onError= (newErrorFn:ErrorFn) => {
+  onErrorFn = newErrorFn;
+};
 const connect = () => {
   // Setup
   return ioClient.connect(url, {
@@ -216,6 +227,12 @@ export const sendAnswer = (lobbyName: string, question:number,answer:number) => 
   clientSocket.emit('hotseatAnswer', lobbyName, question,answer);
 }
 
+const ping = () =>{
+  clientSocket.emit('pinger',(data:string)=>{
+    if(data!=='ponger')console.error('Gamesock-client: Did not return ping')
+  })
+  setTimeout(ping, 4000);
+}
 
 // Start the listener to handle messages
 const startMessageListener = () => {
@@ -227,8 +244,13 @@ const startMessageListener = () => {
 const startErrorListener = () => {
   clientSocket.on('gamesockError', (errorMsg: string) => {
     console.error(`Gamesock-Server Error: ${errorMsg}`);
+    onErrorFn(errorMsg)
   });
+  clientSocket.on('disconnect',(reason:string)=>{
+    onDisconnectFn(reason)
+  })
 };
+
 
 const startSinglePlayerUpdateListener = () => {
   clientSocket.on('playerUpdated', (player: Player) => {
@@ -294,10 +316,11 @@ const startRoundEndListener = () => {
 
 // Start listeners specific to the lobby
 const startLobbyListeners = () => {
+  ping()
   ts=timesync.create({
     server:timerUrl,
     interval:100000
-  })
+  }) as any;
   // Generic listnerts
   startMessageListener();
   startErrorListener();
@@ -307,7 +330,7 @@ const startLobbyListeners = () => {
   // Start lobby specific listeners
   startStartGameListener();
   startRoundStartListener();
-};
+} ;
 
 // Start listeners specific to the game
 const startGameListeners = () => {
@@ -361,5 +384,7 @@ export default {
   onTimerUpdate,
   onStartHotseat,
   onRoundEnd,
-  onHotseatAnswer
+  onHotseatAnswer,
+  onError,
+  onDisconnect
 };
