@@ -210,6 +210,9 @@ export const startGame = (lobbyName: string) => {
   clientSocket.emit('startGame', lobbyName);
 };
 
+export const continueWithGame = (lobbyName: string) => {
+  clientSocket.emit('continue', lobbyName);
+};
 
 export const startNextRound=(lobbyName:string)=>{
   clientSocket.emit('startNextRound',lobbyName)
@@ -229,7 +232,9 @@ export const sendAnswer = (lobbyName: string, question:number,answer:number) => 
 
 const ping = () =>{
   clientSocket.emit('pinger',(data:string)=>{
-    if(data!=='ponger')console.error('Gamesock-client: Did not return ping')
+    if(data!=='ponger'){
+      console.error('Gamesock-client: Did not return ping')
+    }
   })
   setTimeout(ping, 4000);
 }
@@ -266,7 +271,7 @@ const startPlayerListUpdateListener = () => {
 
 const startRoundStartListener = () => {
   clientSocket.on('startRound', (roundOptions:RoundOptions) => {
-    console.log('roundOptions',roundOptions)
+    // console.log('roundOptions',roundOptions)
     startRoundFn(roundOptions)
     // start a synchronised timer
     timerSync(roundOptions.time!, roundOptions.timerStart!);
@@ -343,7 +348,7 @@ const startGameListeners = () => {
 
 
 const timerSync = async (seconds:number,timerStart:number)=>{
-  console.log('Starting timerSync')
+  // console.log('Starting timerSync')
   // secondsLeft=seconds;
 // @ts-ignore
   const startTime:number=ts.now();
@@ -357,13 +362,13 @@ const timerSync = async (seconds:number,timerStart:number)=>{
 
 const startTimer = (seconds:number) => {
   secondsLeft=seconds;
-  console.log('Starting timer')
+  // console.log('Starting timer')
   for (let index = secondsLeft; index--;) {
     setTimeout(
       ()=>{
         secondsLeft--;
         timerUpdateFn(secondsLeft)
-        console.log(`Seconds Left: ${secondsLeft}`)
+        // console.log(`Seconds Left: ${secondsLeft}`)
       },
       index * 1000)
   }
@@ -386,5 +391,6 @@ export default {
   onRoundEnd,
   onHotseatAnswer,
   onError,
-  onDisconnect
+  onDisconnect,
+  continueWithGame
 };
