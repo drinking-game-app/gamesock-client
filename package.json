@@ -1,6 +1,6 @@
 {
   "name": "@rossmacd/gamesock-client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A client side library for connecting to gamesock servers",
   "main": "lib/index.js",
   "types": "./lib/index.d.ts",
