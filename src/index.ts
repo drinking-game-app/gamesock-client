@@ -226,8 +226,8 @@ export const getPlayers = (lobbyName: string) => {
   clientSocket.emit('getPlayers', lobbyName);
 };
 
-export const sendAnswer = (lobbyName: string, question:number,answer:number) => {
-  clientSocket.emit('hotseatAnswer', lobbyName, question,answer);
+export const sendAnswer = (lobbyName: string, question:number,answer:number,roundNum:number) => {
+  clientSocket.emit('hotseatAnswer', lobbyName, question,answer,roundNum);
 }
 
 const ping = () =>{
