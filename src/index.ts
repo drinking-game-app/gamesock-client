@@ -37,6 +37,7 @@ export interface Message {
   msg: string;
 }
 
+
 export type RoundOptions = {
   // Current round number
   roundNum: number;
@@ -48,10 +49,16 @@ export type RoundOptions = {
   time?: number;
   // // Time to start first timer: Date.now foramt
   timerStart?: number;
+  // Time to answer
+  tta:number
+  // Delay between questions
+  delayBetweenQs:number
 };
+
 export interface HotseatOptions{
   // The time to answer each question
-  tta:number
+  tta:number;
+  delayBetweenQs:number;
 }
 
 export interface GameOptions{
@@ -303,7 +310,7 @@ const startHotseatListener = () => {
   clientSocket.on('startHotseat', (allQuestions:Question[], hotseatOptions:HotseatOptions) => {
     onStartHotseatFn(allQuestions, hotseatOptions);
     for (const question of allQuestions) {
-      timerSync(3,question.tts!)
+      timerSync(hotseatOptions.tta+hotseatOptions.delayBetweenQs,question.tts!)
     }
   })
 }
