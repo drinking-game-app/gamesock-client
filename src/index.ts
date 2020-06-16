@@ -1,12 +1,14 @@
 import ioClient from 'socket.io-client';
 // import {TimeSync} from './tsLib/timesync';
-
+import {version} from './info.json'
+// const version = require()
+// const version='0.2.1'
 // @ts-ignore
 import * as timesync from './jsLib/timesync';
 
 let url = `http://localhost:3000`;
 let clientSocket: SocketIOClient.Socket;
-
+// import {version} from "../package.json"
 // Timer shit
 // tslint:disable-next-line: prefer-const
 let timerUrl='http://localhost:3000/timesync';
@@ -37,6 +39,7 @@ export interface Message {
   msg: string;
 }
 
+
 export type RoundOptions = {
   // Current round number
   roundNum: number;
@@ -48,10 +51,16 @@ export type RoundOptions = {
   time?: number;
   // // Time to start first timer: Date.now foramt
   timerStart?: number;
+  // Time to answer
+  tta:number
+  // Delay between questions
+  delayBetweenQs:number
 };
+
 export interface HotseatOptions{
   // The time to answer each question
-  tta:number
+  tta:number;
+  delayBetweenQs:number;
 }
 
 export interface GameOptions{
@@ -135,6 +144,7 @@ export const onRequestQuestions =(newSendQuestionsFn:SendQuestionsFn)=>{
 export const setup = (endpointURL: string,timerEndpoint:string) => {
   url = endpointURL;
   timerUrl = timerEndpoint;
+  console.log(`%cGamesock-Client %cVersion: ${version} Initialized`, 'color:green;padding:1px 5px;border:1px solid black', 'color:black;padding:1px 5px;border:1px solid black');
 };
 export const onStartHotseat = (newOnStartHotseatFn:StartHotseatFn) => {
   onStartHotseatFn = newOnStartHotseatFn;
@@ -226,8 +236,8 @@ export const getPlayers = (lobbyName: string) => {
   clientSocket.emit('getPlayers', lobbyName);
 };
 
-export const sendAnswer = (lobbyName: string, question:number,answer:number) => {
-  clientSocket.emit('hotseatAnswer', lobbyName, question,answer);
+export const sendAnswer = (lobbyName: string, question:number,answer:number,roundNum:number) => {
+  clientSocket.emit('hotseatAnswer', lobbyName, question,answer,roundNum);
 }
 
 const ping = () =>{
@@ -303,7 +313,7 @@ const startHotseatListener = () => {
   clientSocket.on('startHotseat', (allQuestions:Question[], hotseatOptions:HotseatOptions) => {
     onStartHotseatFn(allQuestions, hotseatOptions);
     for (const question of allQuestions) {
-      timerSync(3,question.tts!)
+      timerSync(hotseatOptions.tta,question.tts!)
     }
   })
 }
@@ -368,7 +378,7 @@ const startTimer = (seconds:number) => {
       ()=>{
         secondsLeft--;
         timerUpdateFn(secondsLeft)
-        // console.log(`Seconds Left: ${secondsLeft}`)
+        if(secondsLeft<0)console.error('Gamesock-Client Error - Timer less than 0. 🙀 This means there was probably a syncing error')
       },
       index * 1000)
   }

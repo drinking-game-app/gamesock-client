@@ -1,15 +1,16 @@
 {
   "name": "@rossmacd/gamesock-client",
-  "version": "0.1.1",
+  "version": "0.2.1",
   "description": "A client side library for connecting to gamesock servers",
   "main": "lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
     "test": "jest --detectOpenHandles --runInBand --coverage",
-    "build": "tsc -p declaration.tsconfig.json",
+    "build": "npm run bump && tsc -p declaration.tsconfig.json",
     "prepublishOnly": "npm run lint && npm run build",
     "preversion": "npm run lint",
-    "lint": "tslint -p tsconfig.json"
+    "lint": "tslint -p tsconfig.json",
+    "bump":"node versionbump.js"
   },
   "author": "Ross MacDonald & Ultan O Nuaillain",
   "license": "ISC",

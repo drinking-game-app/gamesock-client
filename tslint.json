@@ -11,5 +11,10 @@
         "align":true,
         "jsdoc-format": true
     },
-    "rulesDirectory": []
+    "rulesDirectory": [],
+    "linterOptions": {
+        "exclude": [
+          "src/jsLib/**"
+        ]
+      }
 }

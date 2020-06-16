@@ -9,6 +9,8 @@
         "outDir": "lib",
         "baseUrl": ".",
         "strict": true,
+        "resolveJsonModule": true,
+        "allowJs":true,
         "paths": {
             "*": [
                 "node_modules/*"
@@ -16,5 +18,5 @@
         }
     },
     "include": ["src"],
-    "exclude": ["node_modules", "**/__tests__/*"]
+    "exclude": ["node_modules", "**/__tests__/*","src/tsLib/*"]
 }
