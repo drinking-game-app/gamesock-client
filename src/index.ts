@@ -345,15 +345,16 @@ const startLobbyListeners = () => {
   // Start lobby specific listeners
   startStartGameListener();
   startRoundStartListener();
-} ;
-
-// Start listeners specific to the game
-const startGameListeners = () => {
   // Start game specific listeners
   startQuestionRequestListener()
   startHotseatListener();
   startRoundEndListener();
   startHotseatAnswerListener()
+} ;
+
+// Start listeners specific to the game
+const startGameListeners = () => {
+  //
 };
 
 
