@@ -212,6 +212,10 @@ export const updateSelf = (lobbyName: string, player: Player) => {
   clientSocket.emit('updateSelf', lobbyName, player);
 };
 
+export const claimSocket = (lobbyName: string, socketId: string, authcode:string) => {
+  clientSocket.emit('claimSocket', lobbyName, socketId, authcode);
+};
+
 /**
  * Attempt to start the game, can only be triggered by the host
  *
