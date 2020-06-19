@@ -212,8 +212,8 @@ export const updateSelf = (lobbyName: string, player: Player) => {
   clientSocket.emit('updateSelf', lobbyName, player);
 };
 
-export const claimSocket = (lobbyName: string, socketId: string, authcode:string) => {
-  clientSocket.emit('claimSocket', lobbyName, socketId, authcode);
+export const claimSocket = (lobbyName: string, socketId: string) => {
+  clientSocket.emit('claimSocket', lobbyName, socketId);
 };
 
 /**
