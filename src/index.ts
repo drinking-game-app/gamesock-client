@@ -212,8 +212,18 @@ export const updateSelf = (lobbyName: string, player: Player) => {
   clientSocket.emit('updateSelf', lobbyName, player);
 };
 
-export const claimSocket = (lobbyName: string, socketId: string) => {
-  clientSocket.emit('claimSocket', lobbyName, socketId);
+export const claimSocket = async (lobbyName: string, socketId: string) => {
+  clientSocket = connect();
+  // Start all listeners for events from server
+  startLobbyListeners();
+  return new Promise<{players:Player[],id:string}>((res, rej) => {
+  clientSocket.emit('claimSocket', lobbyName, socketId, (callbackRes:{ok:boolean,players:Player[]})=>{
+    if (!callbackRes.ok) {
+      rej('Could not join lobby');
+    }
+    res({players:callbackRes.players,id:clientSocket.id});
+  });
+  })
 };
 
 /**
@@ -407,5 +417,6 @@ export default {
   onHotseatAnswer,
   onError,
   onDisconnect,
-  continueWithGame
+  continueWithGame,
+  claimSocket
 };
